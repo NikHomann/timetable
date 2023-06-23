@@ -19,9 +19,9 @@ class TimetableExample extends StatefulWidget {
   State<TimetableExample> createState() => _TimetableExampleState();
 }
 
-class _TimetableExampleState extends State<TimetableExample>
-    with TickerProviderStateMixin {
+class _TimetableExampleState extends State<TimetableExample> with TickerProviderStateMixin {
   var _visibleDateRange = PredefinedVisibleDateRange.week;
+
   void _updateVisibleDateRange(PredefinedVisibleDateRange newValue) {
     setState(() {
       _visibleDateRange = newValue;
@@ -29,8 +29,9 @@ class _TimetableExampleState extends State<TimetableExample>
     });
   }
 
-  bool get _isRecurringLayout =>
-      _visibleDateRange == PredefinedVisibleDateRange.fixed;
+  bool get _isRecurringLayout => _visibleDateRange == PredefinedVisibleDateRange.fixed;
+
+  bool get _isResourceLayout => _visibleDateRange == PredefinedVisibleDateRange.resource;
 
   late final _dateController = DateController(
     // All parameters are optional.
@@ -46,12 +47,20 @@ class _TimetableExampleState extends State<TimetableExample>
     maxRange: TimeRange(0.hours, 24.hours),
   );
 
+  final _resourceController = ResourceController(
+      visibleRange: VisibleResourceRange(
+    visibleResourceCount: 2,
+    resources: ["1", "2", "3"],
+    swipeRange: 1,
+  ));
+
   final _draggedEvents = <BasicEvent>[];
 
   @override
   void dispose() {
     _timeController.dispose();
     _dateController.dispose();
+    _resourceController.dispose();
     super.dispose();
   }
 
@@ -61,18 +70,28 @@ class _TimetableExampleState extends State<TimetableExample>
       // Required:
       dateController: _dateController,
       timeController: _timeController,
+      resourceController: _resourceController,
       eventBuilder: (context, event) => _buildPartDayEvent(event),
       // ignore: sort_child_properties_last
       child: Column(children: [
         _buildAppBar(),
         Expanded(
-          child: _isRecurringLayout
-              ? RecurringMultiDateTimetable<BasicEvent>()
-              : MultiDateTimetable<BasicEvent>(),
+          child: _isResourceLayout
+              ? ResourceTimetable<BasicEvent>(
+                  timetableBuilder: (context) => MultiResourceTimetable<BasicEvent>(
+                    headerBuilder: (header, leadingWidth) => MultiResourceTimetableHeader<BasicEvent>(
+                      leading: SizedBox(width: leadingWidth),
+                      resourceHeaderBuilder: (ctx, dt, res) => Center(child: Text('$res (${dt.day})')),
+                    ),
+                  ),
+                )
+              : _isRecurringLayout
+                  ? RecurringMultiDateTimetable<BasicEvent>()
+                  : MultiDateTimetable<BasicEvent>(),
         ),
       ]),
       // Optional:
-      eventProvider: eventProviderFromFixedList(positioningDemoEvents),
+      eventProvider: eventProviderFromFixedList(resourceDemoEvents),
       allDayEventBuilder: (context, event, info) => BasicAllDayEventWidget(
         event,
         info: info,
@@ -80,9 +99,10 @@ class _TimetableExampleState extends State<TimetableExample>
       ),
       timeOverlayProvider: mergeTimeOverlayProviders([
         positioningDemoOverlayProvider,
-        (context, date) => _draggedEvents
-            .map((it) =>
-                it.toTimeOverlay(date: date, widget: BasicEventWidget(it)))
+        (context, date, res) => _draggedEvents
+            .map(
+              (it) => it.toTimeOverlay(date: date, widget: BasicEventWidget(it)),
+            )
             .whereNotNull()
             .toList(),
       ]),
@@ -99,12 +119,9 @@ class _TimetableExampleState extends State<TimetableExample>
           _showSnackBar('Tapped on date $date.');
           _dateController.animateTo(date, vsync: this);
         },
-        onDateBackgroundTap: (date) =>
-            _showSnackBar('Tapped on date background at $date.'),
-        onDateTimeBackgroundTap: (dateTime) =>
-            _showSnackBar('Tapped on date-time background at $dateTime.'),
-        onMultiDateHeaderOverflowTap: (date) =>
-            _showSnackBar('Tapped on the overflow of $date.'),
+        onDateBackgroundTap: (date) => _showSnackBar('Tapped on date background at $date.'),
+        onDateTimeBackgroundTap: (dateTime) => _showSnackBar('Tapped on date-time background at $dateTime.'),
+        onMultiDateHeaderOverflowTap: (date) => _showSnackBar('Tapped on the overflow of $date.'),
       ),
       theme: TimetableThemeData(
         context,
@@ -165,10 +182,8 @@ class _TimetableExampleState extends State<TimetableExample>
       iconTheme: IconThemeData(color: colorScheme.onSurface),
       systemOverlayStyle: SystemUiOverlayStyle.light,
       backgroundColor: Colors.transparent,
-      title: _isRecurringLayout
-          ? null
-          : MonthIndicator.forController(_dateController),
-      actions: <Widget>[
+      title: _isRecurringLayout ? null : MonthIndicator.forController(_dateController),
+      actions: [
         IconButton(
           icon: const Icon(Icons.today),
           onPressed: () {
@@ -203,7 +218,9 @@ class _TimetableExampleState extends State<TimetableExample>
               callbacks: DefaultTimetableCallbacks.of(context)!.copyWith(
                 onDateTap: (date) {
                   _showSnackBar('Tapped on date $date.');
-                  _updateVisibleDateRange(PredefinedVisibleDateRange.day);
+                  if (_visibleDateRange != PredefinedVisibleDateRange.resource) {
+                    _updateVisibleDateRange(PredefinedVisibleDateRange.day);
+                  }
                   _dateController.animateTo(date, vsync: this);
                 },
               ),
@@ -217,11 +234,10 @@ class _TimetableExampleState extends State<TimetableExample>
     return Material(color: colorScheme.surface, elevation: 4, child: child);
   }
 
-  void _showSnackBar(String content) =>
-      context.scaffoldMessenger.showSnackBar(SnackBar(content: Text(content)));
+  void _showSnackBar(String content) => context.scaffoldMessenger.showSnackBar(SnackBar(content: Text(content)));
 }
 
-enum PredefinedVisibleDateRange { day, threeDays, workWeek, week, fixed }
+enum PredefinedVisibleDateRange { day, threeDays, workWeek, week, fixed, resource }
 
 extension on PredefinedVisibleDateRange {
   VisibleDateRange get visibleDateRange {
@@ -239,6 +255,8 @@ extension on PredefinedVisibleDateRange {
           DateTimeTimetable.today(),
           DateTime.daysPerWeek,
         );
+      case PredefinedVisibleDateRange.resource:
+        return VisibleDateRange.days(1);
     }
   }
 
@@ -254,6 +272,8 @@ extension on PredefinedVisibleDateRange {
         return 'Week';
       case PredefinedVisibleDateRange.fixed:
         return '7 Days (fixed)';
+      case PredefinedVisibleDateRange.resource:
+        return 'Resource View';
     }
   }
 }
