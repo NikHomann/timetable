@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart' hide Interval;
 
 import '../config.dart';
-import '../utils.dart';
 import 'visible_resource_range.dart';
 
 /// Controls the visible resources in Timetable widgets.
@@ -53,7 +52,7 @@ class ResourceController extends ValueNotifier<ResourcePageValueWithScrollActivi
   set visibleRange(VisibleResourceRange visibleRange) {
     cancelAnimation();
     value = value.copyWithActivity(
-      page: visibleRange.getTargetPageForFocus(value.page),
+      page: 0, //always reset back to page 0 as otherwise we could get problems with resources out of range if visibleResourceCount or the resources change
       visibleRange: visibleRange,
       activity: const IdleResourceScrollActivity(),
     );

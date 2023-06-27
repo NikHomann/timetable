@@ -26,12 +26,15 @@ class _TimetableExampleState extends State<TimetableExample> with TickerProvider
     setState(() {
       _visibleDateRange = newValue;
       _dateController.visibleRange = newValue.visibleDateRange;
+      _resourceController.visibleRange = newValue.visibleResourceRange;
     });
   }
 
   bool get _isRecurringLayout => _visibleDateRange == PredefinedVisibleDateRange.fixed;
 
-  bool get _isResourceLayout => _visibleDateRange == PredefinedVisibleDateRange.resource;
+  bool get _isResourceLayout =>
+      _visibleDateRange == PredefinedVisibleDateRange.resource ||
+      _visibleDateRange == PredefinedVisibleDateRange.single_resource;
 
   late final _dateController = DateController(
     // All parameters are optional.
@@ -50,7 +53,7 @@ class _TimetableExampleState extends State<TimetableExample> with TickerProvider
   final _resourceController = ResourceController(
       visibleRange: VisibleResourceRange(
     visibleResourceCount: 2,
-    resources: ["1", "2", "3"],
+    resources: ['1', '2', '3'],
     swipeRange: 1,
   ));
 
@@ -81,7 +84,13 @@ class _TimetableExampleState extends State<TimetableExample> with TickerProvider
                   timetableBuilder: (context) => MultiResourceTimetable<BasicEvent>(
                     headerBuilder: (header, leadingWidth) => MultiResourceTimetableHeader<BasicEvent>(
                       leading: SizedBox(width: leadingWidth),
-                      resourceHeaderBuilder: (ctx, dt, res) => Center(child: Text('$res (${dt.day})')),
+                      resourceHeaderBuilder: (ctx, dt, res) => GestureDetector(
+                        child: Center(child: Text('$res (${dt.day})')),
+                        onTap: () {
+                          _updateVisibleDateRange(PredefinedVisibleDateRange.single_resource);
+                          _resourceController.jumpTo(res);
+                        },
+                      ),
                     ),
                   ),
                 )
@@ -237,7 +246,7 @@ class _TimetableExampleState extends State<TimetableExample> with TickerProvider
   void _showSnackBar(String content) => context.scaffoldMessenger.showSnackBar(SnackBar(content: Text(content)));
 }
 
-enum PredefinedVisibleDateRange { day, threeDays, workWeek, week, fixed, resource }
+enum PredefinedVisibleDateRange { day, threeDays, workWeek, week, fixed, resource, single_resource }
 
 extension on PredefinedVisibleDateRange {
   VisibleDateRange get visibleDateRange {
@@ -256,8 +265,16 @@ extension on PredefinedVisibleDateRange {
           DateTime.daysPerWeek,
         );
       case PredefinedVisibleDateRange.resource:
+      case PredefinedVisibleDateRange.single_resource:
         return VisibleDateRange.days(1);
     }
+  }
+
+  VisibleResourceRange get visibleResourceRange {
+    return VisibleResourceRange(
+      visibleResourceCount: this == PredefinedVisibleDateRange.resource ? 2 : 1,
+      resources: ['1', '2', '3'],
+    );
   }
 
   String get title {
@@ -273,7 +290,9 @@ extension on PredefinedVisibleDateRange {
       case PredefinedVisibleDateRange.fixed:
         return '7 Days (fixed)';
       case PredefinedVisibleDateRange.resource:
-        return 'Resource View';
+        return 'Resource View (3)';
+      case PredefinedVisibleDateRange.single_resource:
+        return 'Resource View (1)';
     }
   }
 }
