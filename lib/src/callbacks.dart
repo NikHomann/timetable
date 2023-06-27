@@ -11,7 +11,7 @@ import 'week.dart';
 
 typedef WeekTapCallback = void Function(Week week);
 typedef DateTapCallback = void Function(DateTime date);
-typedef DateTimeTapCallback = void Function(DateTime dateTime);
+typedef DateTimeTapCallback = void Function(DateTime dateTime, String? resource);
 
 @immutable
 class TimetableCallbacks {

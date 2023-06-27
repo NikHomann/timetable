@@ -78,6 +78,7 @@ class _MultiResourceContentState<E extends Event> extends State<MultiResourceCon
                 .toList() ??
             [],
         overlays: DefaultTimeOverlayProvider.of(context)?.call(context, date, resource) ?? [],
+        resource: resource,
       ),
     );
 

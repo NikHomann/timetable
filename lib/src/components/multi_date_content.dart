@@ -76,6 +76,7 @@ class _MultiDateContentState<E extends Event>
                 [],
         overlays:
             DefaultTimeOverlayProvider.of(context)?.call(context, date, null) ?? [],
+        resource: null,
       ),
     );
 

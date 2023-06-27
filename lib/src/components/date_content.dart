@@ -23,6 +23,7 @@ class DateContent<E extends Event> extends StatelessWidget {
     super.key,
     required this.date,
     required List<E> events,
+    required this.resource,
     this.overlays = const [],
     this.onBackgroundTap,
   })  : assert(date.debugCheckIsValidTimetableDate()),
@@ -38,6 +39,7 @@ class DateContent<E extends Event> extends StatelessWidget {
   final List<TimeOverlay> overlays;
 
   final DateTimeTapCallback? onBackgroundTap;
+  final String? resource;
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +53,7 @@ class DateContent<E extends Event> extends StatelessWidget {
         behavior: HitTestBehavior.translucent,
         onTapUp: onBackgroundTap != null
             ? (details) =>
-                onBackgroundTap(date + (details.localPosition.dy / height).days)
+                onBackgroundTap(date + (details.localPosition.dy / height).days, resource)
             : null,
         child: Stack(children: [
           _buildOverlaysForPosition(TimeOverlayPosition.behindEvents),

@@ -129,7 +129,7 @@ class _TimetableExampleState extends State<TimetableExample> with TickerProvider
           _dateController.animateTo(date, vsync: this);
         },
         onDateBackgroundTap: (date) => _showSnackBar('Tapped on date background at $date.'),
-        onDateTimeBackgroundTap: (dateTime) => _showSnackBar('Tapped on date-time background at $dateTime.'),
+        onDateTimeBackgroundTap: (dateTime, res) => _showSnackBar('Tapped on date-time background at $dateTime for $res.'),
         onMultiDateHeaderOverflowTap: (date) => _showSnackBar('Tapped on the overflow of $date.'),
       ),
       theme: TimetableThemeData(
