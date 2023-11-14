@@ -19,7 +19,8 @@ class TimetableExample extends StatefulWidget {
   State<TimetableExample> createState() => _TimetableExampleState();
 }
 
-class _TimetableExampleState extends State<TimetableExample> with TickerProviderStateMixin {
+class _TimetableExampleState extends State<TimetableExample>
+    with TickerProviderStateMixin {
   var _visibleDateRange = PredefinedVisibleDateRange.week;
 
   void _updateVisibleDateRange(PredefinedVisibleDateRange newValue) {
@@ -30,7 +31,8 @@ class _TimetableExampleState extends State<TimetableExample> with TickerProvider
     });
   }
 
-  bool get _isRecurringLayout => _visibleDateRange == PredefinedVisibleDateRange.fixed;
+  bool get _isRecurringLayout =>
+      _visibleDateRange == PredefinedVisibleDateRange.fixed;
 
   bool get _isResourceLayout =>
       _visibleDateRange == PredefinedVisibleDateRange.resource ||
@@ -81,13 +83,16 @@ class _TimetableExampleState extends State<TimetableExample> with TickerProvider
         Expanded(
           child: _isResourceLayout
               ? ResourceTimetable<BasicEvent>(
-                  timetableBuilder: (context) => MultiResourceTimetable<BasicEvent>(
-                    headerBuilder: (header, leadingWidth) => MultiResourceTimetableHeader<BasicEvent>(
+                  timetableBuilder: (context) =>
+                      MultiResourceTimetable<BasicEvent>(
+                    headerBuilder: (header, leadingWidth) =>
+                        MultiResourceTimetableHeader<BasicEvent>(
                       leading: SizedBox(width: leadingWidth),
                       resourceHeaderBuilder: (ctx, dt, res) => GestureDetector(
                         child: Center(child: Text('$res (${dt.day})')),
                         onTap: () {
-                          _updateVisibleDateRange(PredefinedVisibleDateRange.single_resource);
+                          _updateVisibleDateRange(
+                              PredefinedVisibleDateRange.single_resource);
                           _resourceController.jumpTo(res);
                         },
                       ),
@@ -108,9 +113,10 @@ class _TimetableExampleState extends State<TimetableExample> with TickerProvider
       ),
       timeOverlayProvider: mergeTimeOverlayProviders([
         positioningDemoOverlayProvider,
-        (context, date, res) => _draggedEvents
+        (context, date) => _draggedEvents
             .map(
-              (it) => it.toTimeOverlay(date: date, widget: BasicEventWidget(it)),
+              (it) =>
+                  it.toTimeOverlay(date: date, widget: BasicEventWidget(it)),
             )
             .whereNotNull()
             .toList(),
@@ -128,9 +134,12 @@ class _TimetableExampleState extends State<TimetableExample> with TickerProvider
           _showSnackBar('Tapped on date $date.');
           _dateController.animateTo(date, vsync: this);
         },
-        onDateBackgroundTap: (date) => _showSnackBar('Tapped on date background at $date.'),
-        onDateTimeBackgroundTap: (dateTime, res) => _showSnackBar('Tapped on date-time background at $dateTime for $res.'),
-        onMultiDateHeaderOverflowTap: (date) => _showSnackBar('Tapped on the overflow of $date.'),
+        onDateBackgroundTap: (date) =>
+            _showSnackBar('Tapped on date background at $date.'),
+        onDateTimeBackgroundTap: (dateTime, res) => _showSnackBar(
+            'Tapped on date-time background at $dateTime for $res.'),
+        onMultiDateHeaderOverflowTap: (date) =>
+            _showSnackBar('Tapped on the overflow of $date.'),
       ),
       theme: TimetableThemeData(
         context,
@@ -158,9 +167,7 @@ class _TimetableExampleState extends State<TimetableExample> with TickerProvider
     final roundedTo = 15.minutes;
 
     return PartDayDraggableEvent(
-      onDragStart: () => setState(() {
-        _draggedEvents.add(event.copyWith(showOnTop: true));
-      }),
+      onDragStart: () => setState(() => _draggedEvents.add(event)),
       onDragUpdate: (dateTime) => setState(() {
         dateTime = dateTime.roundTimeToMultipleOf(roundedTo);
         final index = _draggedEvents.indexWhere((it) => it.id == event.id);
@@ -191,7 +198,9 @@ class _TimetableExampleState extends State<TimetableExample> with TickerProvider
       iconTheme: IconThemeData(color: colorScheme.onSurface),
       systemOverlayStyle: SystemUiOverlayStyle.light,
       backgroundColor: Colors.transparent,
-      title: _isRecurringLayout ? null : MonthIndicator.forController(_dateController),
+      title: _isRecurringLayout
+          ? null
+          : MonthIndicator.forController(_dateController),
       actions: [
         IconButton(
           icon: const Icon(Icons.today),
@@ -202,7 +211,7 @@ class _TimetableExampleState extends State<TimetableExample> with TickerProvider
           tooltip: 'Go to today',
         ),
         const SizedBox(width: 8),
-        DropdownButton<PredefinedVisibleDateRange>(
+        DropdownButton(
           onChanged: (visibleRange) => _updateVisibleDateRange(visibleRange!),
           value: _visibleDateRange,
           items: [
@@ -227,7 +236,8 @@ class _TimetableExampleState extends State<TimetableExample> with TickerProvider
               callbacks: DefaultTimetableCallbacks.of(context)!.copyWith(
                 onDateTap: (date) {
                   _showSnackBar('Tapped on date $date.');
-                  if (_visibleDateRange != PredefinedVisibleDateRange.resource) {
+                  if (_visibleDateRange !=
+                      PredefinedVisibleDateRange.resource) {
                     _updateVisibleDateRange(PredefinedVisibleDateRange.day);
                   }
                   _dateController.animateTo(date, vsync: this);
@@ -243,10 +253,19 @@ class _TimetableExampleState extends State<TimetableExample> with TickerProvider
     return Material(color: colorScheme.surface, elevation: 4, child: child);
   }
 
-  void _showSnackBar(String content) => context.scaffoldMessenger.showSnackBar(SnackBar(content: Text(content)));
+  void _showSnackBar(String content) =>
+      context.scaffoldMessenger.showSnackBar(SnackBar(content: Text(content)));
 }
 
-enum PredefinedVisibleDateRange { day, threeDays, workWeek, week, fixed, resource, single_resource }
+enum PredefinedVisibleDateRange {
+  day,
+  threeDays,
+  workWeek,
+  week,
+  fixed,
+  resource,
+  single_resource
+}
 
 extension on PredefinedVisibleDateRange {
   VisibleDateRange get visibleDateRange {

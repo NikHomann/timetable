@@ -1,7 +1,6 @@
 import 'dart:ui';
 
 import 'package:black_hole_flutter/black_hole_flutter.dart';
-import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart' hide Interval;
 import 'package:flutter/rendering.dart';
 
@@ -59,7 +58,7 @@ class MultiDateEventHeader<E extends Event> extends StatelessWidget {
         maxEventRows = maxEventRowsFromHeight.coerceAtMost(maxEventRows);
       }
 
-      return ValueListenableBuilder<DatePageValue>(
+      return ValueListenableBuilder(
         valueListenable: DefaultDateController.of(context)!,
         builder: (context, pageValue, __) => _buildContent(
           context,
@@ -368,7 +367,7 @@ class _EventParentDataWidget extends ParentDataWidget<_EventParentData> {
 }
 
 class _EventsWidget extends MultiChildRenderObjectWidget {
-  _EventsWidget({
+  const _EventsWidget({
     required this.pageValue,
     required this.eventHeight,
     required this.maxEventRows,

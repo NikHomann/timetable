@@ -40,15 +40,16 @@ class _DatePageViewState extends State<DatePageView> {
   final _heights = <int, double>{};
 
   @override
+  void didUpdateWidget(DatePageView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    assert(_controller != null);
+    _updateController();
+  }
+
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_controller != null && !_controller!.isDisposed) {
-      _controller!.date.removeListener(_onDateChanged);
-      _scrollController!.dispose();
-    }
-    _controller = widget.controller ?? DefaultDateController.of(context)!;
-    _scrollController = MultiDateScrollController(_controller!);
-    _controller!.date.addListener(_onDateChanged);
+    _updateController();
   }
 
   @override
@@ -56,6 +57,19 @@ class _DatePageViewState extends State<DatePageView> {
     _controller!.date.removeListener(_onDateChanged);
     _scrollController!.dispose();
     super.dispose();
+  }
+
+  void _updateController() {
+    if (_controller != null && widget.controller == _controller) return;
+
+    if (_controller != null && !_controller!.isDisposed) {
+      _controller!.date.removeListener(_onDateChanged);
+      _scrollController!.dispose();
+    }
+
+    _controller = widget.controller ?? DefaultDateController.of(context)!;
+    _scrollController = MultiDateScrollController(_controller!);
+    _controller!.date.addListener(_onDateChanged);
   }
 
   void _onDateChanged() {
@@ -67,14 +81,14 @@ class _DatePageViewState extends State<DatePageView> {
 
   @override
   Widget build(BuildContext context) {
-    Widget child = ValueListenableBuilder<bool>(
+    Widget child = ValueListenableBuilder(
       valueListenable: _controller!.map((it) => it.visibleRange.canScroll),
       builder: (context, canScroll, _) =>
           canScroll ? _buildScrollingChild() : _buildNonScrollingChild(),
     );
 
     if (widget.shrinkWrapInCrossAxis) {
-      child = ValueListenableBuilder<DatePageValue>(
+      child = ValueListenableBuilder(
         valueListenable: _controller!,
         builder: (context, pageValue, child) => ImmediateSizedBox(
           heightGetter: () => _getHeight(pageValue),
@@ -91,36 +105,32 @@ class _DatePageViewState extends State<DatePageView> {
       axisDirection: AxisDirection.right,
       physics: DateScrollPhysics(_controller!.map((it) => it.visibleRange)),
       controller: _scrollController!,
-      viewportBuilder: (context, position) {
-        return Viewport(
-          axisDirection: AxisDirection.right,
-          offset: position,
-          slivers: [
-            ValueListenableBuilder<int>(
-              valueListenable: _controller!.map((it) => it.visibleDayCount),
-              builder: (context, visibleDayCount, _) => SliverFillViewport(
-                padEnds: false,
-                viewportFraction: 1 / visibleDayCount,
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) => _buildPage(context, _minPage + index),
-                ),
+      viewportBuilder: (context, position) => Viewport(
+        axisDirection: AxisDirection.right,
+        offset: position,
+        slivers: [
+          ValueListenableBuilder(
+            valueListenable: _controller!.map((it) => it.visibleDayCount),
+            builder: (context, visibleDayCount, _) => SliverFillViewport(
+              padEnds: false,
+              viewportFraction: 1 / visibleDayCount,
+              delegate: SliverChildBuilderDelegate(
+                (context, index) => _buildPage(context, _minPage + index),
               ),
             ),
-          ],
-        );
-      },
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildNonScrollingChild() {
-    return ValueListenableBuilder<DatePageValue>(
+    return ValueListenableBuilder(
       valueListenable: _controller!,
-      builder: (context, value, _) => Row(
-        children: [
-          for (var i = 0; i < value.visibleDayCount; i++)
-            Expanded(child: _buildPage(context, value.page.toInt() + i)),
-        ],
-      ),
+      builder: (context, value, _) => Row(children: [
+        for (var i = 0; i < value.visibleDayCount; i++)
+          Expanded(child: _buildPage(context, value.page.toInt() + i)),
+      ]),
     );
   }
 
@@ -185,7 +195,7 @@ class MultiDateScrollController extends ScrollController {
     );
     final linkedPosition = position as MultiDateScrollPosition;
     assert(
-      linkedPosition.owner == this,
+      linkedPosition.controller == controller,
       'MultiDateScrollPosition cannot change controllers once created.',
     );
     super.attach(position);

@@ -48,7 +48,7 @@ class _MultiDateContentState<E extends Event>
   @override
   void initState() {
     super.initState();
-    geometryKey = widget.geometryKey ?? GlobalKey<MultiDateContentGeometry>();
+    geometryKey = widget.geometryKey ?? GlobalKey();
     wasGeometryKeyFromWidget = widget.geometryKey != null;
   }
 
@@ -56,7 +56,7 @@ class _MultiDateContentState<E extends Event>
   void didUpdateWidget(covariant MultiDateContent<E> oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.geometryKey == null && wasGeometryKeyFromWidget) {
-      geometryKey = GlobalKey<MultiDateContentGeometry>();
+      geometryKey = GlobalKey();
       wasGeometryKeyFromWidget = false;
     } else if (widget.geometryKey != null &&
         geometryKey != widget.geometryKey) {
@@ -134,7 +134,7 @@ class MultiDateContentGeometry extends State<_MultiDateContentGeometryWidget> {
   RenderBox _findRenderBox() => context.findRenderObject()! as RenderBox;
 
   static MultiDateContentGeometry? maybeOf(BuildContext context) =>
-      context.findAncestorStateOfType<MultiDateContentGeometry>();
+      context.findAncestorStateOfType();
 }
 
 typedef PartDayDragStartCallback = VoidCallback;
@@ -161,11 +161,14 @@ typedef PartDayDragEndCallbackWithGeometryKey = void Function(
 
 typedef PartDayDragCanceledCallbackRaw = void Function(
   GlobalKey<MultiDateContentGeometry>? geometryKey,
+  // ignore: avoid_positional_boolean_parameters
   bool wasMoved,
 );
+// ignore: avoid_positional_boolean_parameters
 typedef PartDayDragCanceledCallback = void Function(bool wasMoved);
 typedef PartDayDragCanceledCallbackWithGeometryKey = void Function(
   GlobalKey<MultiDateContentGeometry> geometryKey,
+  // ignore: avoid_positional_boolean_parameters
   bool wasMoved,
 );
 
@@ -277,51 +280,58 @@ class _PartDayDraggableEventState extends State<PartDayDraggableEvent> {
   @override
   Widget build(BuildContext context) {
     return _PartDayDraggable(
-      onDragStarted: (offset) {
-        final renderBox = _findRenderBox();
-        final offsetInLocalSpace = renderBox.globalToLocal(offset);
-        _pointerVerticalAlignment =
-            offsetInLocalSpace.dy / renderBox.size.height;
-        _lastOffset = offset;
-
-        widget.onDragStart?.call();
-      },
-      onDragUpdate: (offset) {
-        _lastOffset = offset;
-        final adjustedOffset = _pointerToWidgetTopCenter(offset);
-        final geometry = _findGeometry(context, adjustedOffset);
-        widget.onDragUpdate?.call(
-          geometry.key,
-          geometry.value.resolveOffset(adjustedOffset),
-        );
-        _wasMoved = true;
-      },
-      onDragEnd: () {
-        final adjustedOffset = _pointerToWidgetTopCenter(_lastOffset!);
-        final geometry = _findGeometry(context, adjustedOffset);
-        widget.onDragEnd?.call(
-          geometry.key,
-          geometry.value.resolveOffset(adjustedOffset),
-        );
-        _resetState();
-      },
-      onDragCanceled: () {
-        if (_pointerVerticalAlignment == null) {
-          // The drag already ended.
-          assert(_lastOffset == null);
-          assert(_wasMoved == false);
-          return;
-        }
-
-        final adjustedOffset = _pointerToWidgetTopCenter(_lastOffset!);
-        final geometry = _findGeometry(context, adjustedOffset);
-        widget.onDragCanceled?.call(geometry.key, _wasMoved);
-        _resetState();
-      },
+      onDragStarted: _onDragStarted,
+      onDragUpdate: _onDragUpdate,
+      onDragEnd: _onDragEnd,
+      onDragCanceled: _onDragCanceled,
       feedback: const SizedBox.shrink(),
       childWhenDragging: widget.childWhileDragging,
       child: widget.child,
     );
+  }
+
+  void _onDragStarted(Offset offset) {
+    final renderBox = _findRenderBox();
+    final offsetInLocalSpace = renderBox.globalToLocal(offset);
+    _pointerVerticalAlignment = offsetInLocalSpace.dy / renderBox.size.height;
+    _lastOffset = offset;
+
+    widget.onDragStart?.call();
+  }
+
+  void _onDragUpdate(Offset offset) {
+    _lastOffset = offset;
+    final adjustedOffset = _pointerToWidgetTopCenter(offset);
+    final geometry = _findGeometry(context, adjustedOffset);
+    widget.onDragUpdate?.call(
+      geometry.key,
+      geometry.value.resolveOffset(adjustedOffset),
+    );
+    _wasMoved = true;
+  }
+
+  void _onDragEnd() {
+    final adjustedOffset = _pointerToWidgetTopCenter(_lastOffset!);
+    final geometry = _findGeometry(context, adjustedOffset);
+    widget.onDragEnd?.call(
+      geometry.key,
+      geometry.value.resolveOffset(adjustedOffset),
+    );
+    _resetState();
+  }
+
+  void _onDragCanceled() {
+    if (_pointerVerticalAlignment == null) {
+      // The drag already ended.
+      assert(_lastOffset == null);
+      assert(!_wasMoved);
+      return;
+    }
+
+    final adjustedOffset = _pointerToWidgetTopCenter(_lastOffset!);
+    final geometry = _findGeometry(context, adjustedOffset);
+    widget.onDragCanceled?.call(geometry.key, _wasMoved);
+    _resetState();
   }
 
   Offset _pointerToWidgetTopCenter(Offset offset) {
@@ -358,7 +368,7 @@ class _PartDayDraggableEventState extends State<PartDayDraggableEvent> {
     final geometry = MultiDateContentGeometry.maybeOf(context);
     if (geometry != null) return MapEntry(null, geometry);
 
-    throw FlutterError.fromParts(<DiagnosticsNode>[
+    throw FlutterError.fromParts([
       ErrorSummary(
         "`PartDayDraggableEvent` can't find a `MultiDateContentGeometry`.",
       ),

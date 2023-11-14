@@ -129,11 +129,18 @@ class TimeIndicators extends StatelessWidget {
 }
 
 class _TimeIndicators extends MultiChildRenderObjectWidget {
-  _TimeIndicators({required super.children});
+  const _TimeIndicators({required super.children});
 
   @override
   RenderObject createRenderObject(BuildContext context) =>
       _TimeIndicatorsLayout(textDirection: context.directionality);
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    _TimeIndicatorsLayout renderObject,
+  ) {
+    renderObject.textDirection = context.directionality;
+  }
 }
 
 /// Wraps children of [TimeIndicators] and determines their position.
