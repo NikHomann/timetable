@@ -113,7 +113,7 @@ class _TimetableExampleState extends State<TimetableExample>
       ),
       timeOverlayProvider: mergeTimeOverlayProviders([
         positioningDemoOverlayProvider,
-        (context, date) => _draggedEvents
+        (context, date, resource) => _draggedEvents
             .map(
               (it) =>
                   it.toTimeOverlay(date: date, widget: BasicEventWidget(it)),
