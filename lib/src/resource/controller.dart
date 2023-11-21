@@ -1,3 +1,5 @@
+// ignore_for_file: comment_references
+
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
@@ -17,17 +19,18 @@ import 'visible_resource_range.dart';
 /// * [jumpToToday], [jumpTo], or [jumpToPage] if you don't want an animation
 ///
 /// You can also get and update the [VisibleResourceRange] via [visibleRange].
-class ResourceController extends ValueNotifier<ResourcePageValueWithScrollActivity> {
+class ResourceController
+    extends ValueNotifier<ResourcePageValueWithScrollActivity> {
   ResourceController({
     int? initialIndex,
     required VisibleResourceRange visibleRange,
   }) :
-  // We set the correct value in the body below.
+        // We set the correct value in the body below.
         super(ResourcePageValueWithScrollActivity(
-        visibleRange,
-        0,
-        const IdleResourceScrollActivity(),
-      )) {
+          visibleRange,
+          0,
+          const IdleResourceScrollActivity(),
+        )) {
     // The correct value is set via the listener when we assign to our value.
     _resource = ValueNotifier(visibleRange.resources.first);
     addListener(() => _resource.value = value.resource);
@@ -52,7 +55,8 @@ class ResourceController extends ValueNotifier<ResourcePageValueWithScrollActivi
   set visibleRange(VisibleResourceRange visibleRange) {
     cancelAnimation();
     value = value.copyWithActivity(
-      page: 0, //always reset back to page 0 as otherwise we could get problems with resources out of range if visibleResourceCount or the resources change
+      page:
+          0, //always reset back to page 0 as otherwise we could get problems with resources out of range if visibleResourceCount or the resources change
       visibleRange: visibleRange,
       activity: const IdleResourceScrollActivity(),
     );
@@ -65,8 +69,8 @@ class ResourceController extends ValueNotifier<ResourcePageValueWithScrollActivi
   // Animation
   AnimationController? _animationController;
 
-
-  Future<void> animateTo(String resource, {
+  Future<void> animateTo(
+    String resource, {
     Curve curve = Curves.easeInOut,
     Duration duration = const Duration(milliseconds: 200),
     required TickerProvider vsync,
@@ -79,14 +83,15 @@ class ResourceController extends ValueNotifier<ResourcePageValueWithScrollActivi
     );
   }
 
-  Future<void> animateToPage(double page, {
+  Future<void> animateToPage(
+    double page, {
     Curve curve = Curves.easeInOut,
     Duration duration = const Duration(milliseconds: 200),
     required TickerProvider vsync,
   }) async {
     cancelAnimation();
     final controller =
-    AnimationController(debugLabel: 'DateController', vsync: vsync);
+        AnimationController(debugLabel: 'DateController', vsync: vsync);
     _animationController = controller;
 
     final previousPage = value.page;
@@ -125,7 +130,8 @@ class ResourceController extends ValueNotifier<ResourcePageValueWithScrollActivi
   void cancelAnimation() {
     if (_animationController == null) return;
 
-    value = value.copyWithActivity(activity: const IdleResourceScrollActivity());
+    value =
+        value.copyWithActivity(activity: const IdleResourceScrollActivity());
     _animationController!.dispose();
     _animationController = null;
   }
@@ -182,7 +188,8 @@ class ResourcePageValue with Diagnosticable {
     }
   }
 
-  ResourcePageValue copyWith({VisibleResourceRange? visibleRange, double? page}) =>
+  ResourcePageValue copyWith(
+          {VisibleResourceRange? visibleRange, double? page}) =>
       ResourcePageValue(visibleRange ?? this.visibleRange, page ?? this.page);
 
   @override
@@ -205,9 +212,11 @@ class ResourcePageValue with Diagnosticable {
 }
 
 class ResourcePageValueWithScrollActivity extends ResourcePageValue {
-  const ResourcePageValueWithScrollActivity(super.visibleRange,
-      super.page,
-      this.activity,);
+  const ResourcePageValueWithScrollActivity(
+    super.visibleRange,
+    super.page,
+    this.activity,
+  );
 
   final ResourceScrollActivity activity;
 
@@ -267,7 +276,8 @@ class DrivenResourceScrollActivity extends ResourceScrollActivity {
 /// * [TimetableConfig], which bundles multiple configuration widgets for
 ///   Timetable.
 class DefaultResourceController extends InheritedWidget {
-  const DefaultResourceController({required this.controller, required super.child});
+  const DefaultResourceController(
+      {required this.controller, required super.child});
 
   final ResourceController controller;
 

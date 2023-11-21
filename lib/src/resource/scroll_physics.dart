@@ -1,7 +1,9 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
-import 'package:timetable/src/resource/resource_page_view.dart';
 
+import 'resource_page_view.dart';
 import 'visible_resource_range.dart';
 
 class ResourceScrollPhysics extends ScrollPhysics {
@@ -12,7 +14,10 @@ class ResourceScrollPhysics extends ScrollPhysics {
 
   @override
   ResourceScrollPhysics applyTo(ScrollPhysics? ancestor) =>
-      ResourceScrollPhysics(visibleRangeListenable, parent: buildParent(ancestor));
+      ResourceScrollPhysics(
+        visibleRangeListenable,
+        parent: buildParent(ancestor),
+      );
 
   @override
   double applyBoundaryConditions(ScrollMetrics position, double value) {
@@ -36,9 +41,9 @@ class ResourceScrollPhysics extends ScrollPhysics {
 
   @override
   Simulation? createBallisticSimulation(
-      ScrollMetrics position,
-      double velocity,
-      ) {
+    ScrollMetrics position,
+    double velocity,
+  ) {
     if (position is! MultiResourceScrollPosition) {
       throw ArgumentError(
         'ResourceScrollPhysics must be used with MultiResourceScrollPosition.',

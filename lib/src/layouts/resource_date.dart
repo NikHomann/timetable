@@ -1,15 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:timetable/src/layouts/multi_resource.dart';
 
-import '../config.dart';
-import '../date/controller.dart';
-import '../date/visible_date_range.dart';
-import '../event/builder.dart';
 import '../event/event.dart';
-import '../event/provider.dart';
 import '../theme.dart';
-import '../time/controller.dart';
-import 'multi_date.dart';
+import 'multi_resource.dart';
 
 
 class ResourceTimetable<E extends Event> extends StatelessWidget {

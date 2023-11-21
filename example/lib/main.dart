@@ -36,7 +36,7 @@ class _TimetableExampleState extends State<TimetableExample>
 
   bool get _isResourceLayout =>
       _visibleDateRange == PredefinedVisibleDateRange.resource ||
-      _visibleDateRange == PredefinedVisibleDateRange.single_resource;
+      _visibleDateRange == PredefinedVisibleDateRange.singleResource;
 
   late final _dateController = DateController(
     // All parameters are optional.
@@ -92,7 +92,7 @@ class _TimetableExampleState extends State<TimetableExample>
                         child: Center(child: Text('$res (${dt.day})')),
                         onTap: () {
                           _updateVisibleDateRange(
-                              PredefinedVisibleDateRange.single_resource);
+                              PredefinedVisibleDateRange.singleResource);
                           _resourceController.jumpTo(res);
                         },
                       ),
@@ -264,7 +264,7 @@ enum PredefinedVisibleDateRange {
   week,
   fixed,
   resource,
-  single_resource
+  singleResource
 }
 
 extension on PredefinedVisibleDateRange {
@@ -284,7 +284,7 @@ extension on PredefinedVisibleDateRange {
           DateTime.daysPerWeek,
         );
       case PredefinedVisibleDateRange.resource:
-      case PredefinedVisibleDateRange.single_resource:
+      case PredefinedVisibleDateRange.singleResource:
         return VisibleDateRange.days(1);
     }
   }
@@ -310,7 +310,7 @@ extension on PredefinedVisibleDateRange {
         return '7 Days (fixed)';
       case PredefinedVisibleDateRange.resource:
         return 'Resource View (3)';
-      case PredefinedVisibleDateRange.single_resource:
+      case PredefinedVisibleDateRange.singleResource:
         return 'Resource View (1)';
     }
   }

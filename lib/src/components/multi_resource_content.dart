@@ -1,4 +1,5 @@
-import 'package:flutter/gestures.dart';
+// ignore_for_file: comment_references
+
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart' hide Interval;
 
@@ -39,10 +40,12 @@ class MultiResourceContent<E extends Event> extends StatefulWidget {
   final GlobalKey<MultiResourceContentGeometry>? geometryKey;
 
   @override
-  State<MultiResourceContent<E>> createState() => _MultiResourceContentState<E>();
+  State<MultiResourceContent<E>> createState() =>
+      _MultiResourceContentState<E>();
 }
 
-class _MultiResourceContentState<E extends Event> extends State<MultiResourceContent<E>> {
+class _MultiResourceContentState<E extends Event>
+    extends State<MultiResourceContent<E>> {
   late GlobalKey<MultiResourceContentGeometry> geometryKey;
   late bool wasGeometryKeyFromWidget;
 
@@ -59,7 +62,8 @@ class _MultiResourceContentState<E extends Event> extends State<MultiResourceCon
     if (widget.geometryKey == null && wasGeometryKeyFromWidget) {
       geometryKey = GlobalKey();
       wasGeometryKeyFromWidget = false;
-    } else if (widget.geometryKey != null && geometryKey != widget.geometryKey) {
+    } else if (widget.geometryKey != null &&
+        geometryKey != widget.geometryKey) {
       geometryKey = widget.geometryKey!;
       wasGeometryKeyFromWidget = true;
     }
@@ -67,7 +71,6 @@ class _MultiResourceContentState<E extends Event> extends State<MultiResourceCon
 
   @override
   Widget build(BuildContext context) {
-
     final resourcePages = ResourcePageView(
       controller: DefaultResourceController.of(context)!,
       builder: (context, date, resource) => DateContent<E>(
@@ -77,7 +80,9 @@ class _MultiResourceContentState<E extends Event> extends State<MultiResourceCon
                 .where((element) => element.resource == resource)
                 .toList() ??
             [],
-        overlays: DefaultTimeOverlayProvider.of(context)?.call(context, date, resource) ?? [],
+        overlays: DefaultTimeOverlayProvider.of(context)
+                ?.call(context, date, resource) ??
+            [],
         resource: resource,
       ),
     );
@@ -106,10 +111,12 @@ class _MultiResourceContentGeometryWidget extends StatefulWidget {
   final Widget child;
 
   @override
-  MultiResourceContentGeometry createState() => MultiResourceContentGeometry._();
+  MultiResourceContentGeometry createState() =>
+      MultiResourceContentGeometry._();
 }
 
-class MultiResourceContentGeometry extends State<_MultiResourceContentGeometryWidget> {
+class MultiResourceContentGeometry
+    extends State<_MultiResourceContentGeometryWidget> {
   MultiResourceContentGeometry._();
 
   @override
@@ -126,11 +133,15 @@ class MultiResourceContentGeometry extends State<_MultiResourceContentGeometryWi
     final size = renderBox.size;
     final localOffset = renderBox.globalToLocal(globalOffset);
     final pageValue = DefaultDateController.of(context)!.value;
-    final page = (pageValue.page + localOffset.dx / size.width * pageValue.visibleDayCount).floor();
-    return DateTimeTimetable.dateFromPage(page) + 1.days * (localOffset.dy / size.height);
+    final page = (pageValue.page +
+            localOffset.dx / size.width * pageValue.visibleDayCount)
+        .floor();
+    return DateTimeTimetable.dateFromPage(page) +
+        1.days * (localOffset.dy / size.height);
   }
 
   RenderBox _findRenderBox() => context.findRenderObject()! as RenderBox;
 
-  static MultiResourceContentGeometry? maybeOf(BuildContext context) => context.findAncestorStateOfType();
+  static MultiResourceContentGeometry? maybeOf(BuildContext context) =>
+      context.findAncestorStateOfType();
 }

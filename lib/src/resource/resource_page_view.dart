@@ -6,7 +6,6 @@ import 'package:flutter/rendering.dart';
 
 import '../../timetable.dart';
 import '../utils.dart';
-import 'controller.dart';
 import 'scroll_physics.dart';
 
 /// "DateTimes can represent time values that are at a distance of at most
@@ -134,7 +133,7 @@ class _ResourcePageViewState extends State<ResourcePageView> {
       builder: (context, date, _) => widget.builder(
         context,
         date,
-        resources.length > page ? resources[page] : "",
+        resources.length > page ? resources[page] : '',
       ),
     );
     if (widget.shrinkWrapInCrossAxis) {

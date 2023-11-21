@@ -1,13 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
-import '../callbacks.dart';
-import '../config.dart';
-import '../localization.dart';
-import '../theme.dart';
-import '../utils.dart';
-import 'date_indicator.dart';
-import 'weekday_indicator.dart';
 
 class ResourceHeader extends StatelessWidget {
   const ResourceHeader(

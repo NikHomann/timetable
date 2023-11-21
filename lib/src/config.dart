@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:timetable/src/resource/controller.dart';
 
 import 'callbacks.dart';
 import 'date/controller.dart';
@@ -7,6 +6,7 @@ import 'event/all_day.dart';
 import 'event/builder.dart';
 import 'event/event.dart';
 import 'event/provider.dart';
+import 'resource/controller.dart';
 import 'resource/visible_resource_range.dart';
 import 'theme.dart';
 import 'time/controller.dart';
@@ -65,20 +65,28 @@ class _TimetableConfigState<E extends Event> extends State<TimetableConfig<E>> {
   @override
   Widget build(BuildContext context) {
     Widget child = DefaultTimetableCallbacks(
-      callbacks: widget.callbacks ?? DefaultTimetableCallbacks.of(context) ?? const TimetableCallbacks(),
+      callbacks: widget.callbacks ??
+          DefaultTimetableCallbacks.of(context) ??
+          const TimetableCallbacks(),
       child: TimetableTheme(
-        data: widget.theme ?? TimetableTheme.of(context) ?? TimetableThemeData(context),
+        data: widget.theme ??
+            TimetableTheme.of(context) ??
+            TimetableThemeData(context),
         child: widget.child,
       ),
     );
 
     child = DefaultTimeOverlayProvider(
-      overlayProvider: widget.timeOverlayProvider ?? DefaultTimeOverlayProvider.of(context) ?? emptyTimeOverlayProvider,
+      overlayProvider: widget.timeOverlayProvider ??
+          DefaultTimeOverlayProvider.of(context) ??
+          emptyTimeOverlayProvider,
       child: child,
     );
 
     child = DefaultEventProvider<E>(
-      eventProvider: widget.eventProvider ?? DefaultEventProvider.of<E>(context) ?? (_) => [],
+      eventProvider: widget.eventProvider ??
+          DefaultEventProvider.of<E>(context) ??
+          (_) => [],
       child: DefaultEventBuilder(
         builder: widget.eventBuilder ?? DefaultEventBuilder.of<E>(context)!,
         allDayBuilder: widget.allDayEventBuilder,
@@ -88,11 +96,17 @@ class _TimetableConfigState<E extends Event> extends State<TimetableConfig<E>> {
     );
 
     return DefaultDateController(
-      controller: widget.dateController ?? DefaultDateController.of(context) ?? _dateController,
+      controller: widget.dateController ??
+          DefaultDateController.of(context) ??
+          _dateController,
       child: DefaultTimeController(
-        controller: widget.timeController ?? DefaultTimeController.of(context) ?? _timeController,
+        controller: widget.timeController ??
+            DefaultTimeController.of(context) ??
+            _timeController,
         child: DefaultResourceController(
-          controller: widget.resourceController ?? DefaultResourceController.of(context) ?? _resourceController,
+          controller: widget.resourceController ??
+              DefaultResourceController.of(context) ??
+              _resourceController,
           child: child,
         ),
       ),

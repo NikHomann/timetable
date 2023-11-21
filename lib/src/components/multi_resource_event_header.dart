@@ -1,21 +1,12 @@
+// ignore_for_file: comment_references
+
 import 'dart:ui';
 
 import 'package:black_hole_flutter/black_hole_flutter.dart';
-import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart' hide Interval;
 import 'package:flutter/rendering.dart';
 
 import '../../timetable.dart';
-import '../callbacks.dart';
-import '../config.dart';
-import '../date/controller.dart';
-import '../date/date_page_view.dart';
-import '../event/all_day.dart';
-import '../event/builder.dart';
-import '../event/event.dart';
-import '../event/provider.dart';
-import '../layouts/multi_date.dart';
-import '../theme.dart';
 import '../utils.dart';
 
 /// A widget that displays all-day [Event]s.
@@ -48,7 +39,8 @@ class MultiResourceEventHeader<E extends Event> extends StatelessWidget {
     final child = LayoutBuilder(builder: (context, constraints) {
       var maxEventRows = style.maxEventRows;
       if (constraints.maxHeight.isFinite) {
-        final maxRowsFromHeight = (constraints.maxHeight / style.eventHeight).floor();
+        final maxRowsFromHeight =
+            (constraints.maxHeight / style.eventHeight).floor();
         final maxEventRowsFromHeight = (maxRowsFromHeight - 1).coerceAtLeast(0);
         maxEventRows = maxEventRowsFromHeight.coerceAtMost(maxEventRows);
       }
@@ -69,7 +61,8 @@ class MultiResourceEventHeader<E extends Event> extends StatelessWidget {
 
     return Stack(children: [
       Positioned.fill(
-        child: ResourcePageView(builder: (context, date, res) => const SizedBox()),
+        child:
+            ResourcePageView(builder: (context, date, res) => const SizedBox()),
       ),
       ClipRect(child: Padding(padding: style.padding, child: child)),
     ]);
@@ -83,9 +76,9 @@ class MultiResourceEventHeader<E extends Event> extends StatelessWidget {
   }) {
     return _MultiResourceEventHeaderEvents<E>(
       pageValue: pageValue,
-      events:
-          DefaultEventProvider.of<E>(context)?.call(DefaultDateController.of(context)!.date.value.fullDayInterval) ??
-              [],
+      events: DefaultEventProvider.of<E>(context)?.call(
+              DefaultDateController.of(context)!.date.value.fullDayInterval) ??
+          [],
       eventHeight: eventHeight,
       maxEventRows: maxEventRows,
     );
@@ -106,10 +99,12 @@ class _MultiResourceEventHeaderEvents<E extends Event> extends StatefulWidget {
   final int maxEventRows;
 
   @override
-  State<_MultiResourceEventHeaderEvents<E>> createState() => _MultiResourceEventHeaderEventsState<E>();
+  State<_MultiResourceEventHeaderEvents<E>> createState() =>
+      _MultiResourceEventHeaderEventsState<E>();
 }
 
-class _MultiResourceEventHeaderEventsState<E extends Event> extends State<_MultiResourceEventHeaderEvents<E>> {
+class _MultiResourceEventHeaderEventsState<E extends Event>
+    extends State<_MultiResourceEventHeaderEvents<E>> {
   final _yPositions = <E, int?>{};
   final _maxEventPositions = <int, int>{};
 
@@ -124,14 +119,16 @@ class _MultiResourceEventHeaderEventsState<E extends Event> extends State<_Multi
     if (oldWidget.pageValue != widget.pageValue ||
         oldWidget.eventHeight != widget.eventHeight ||
         oldWidget.maxEventRows != widget.maxEventRows ||
-        !const DeepCollectionEquality().equals(oldWidget.events, widget.events)) {
+        !const DeepCollectionEquality()
+            .equals(oldWidget.events, widget.events)) {
       _updateEventPositions(oldMaxEventRows: oldWidget.maxEventRows);
     }
     super.didUpdateWidget(oldWidget);
   }
 
   void _updateEventPositions({required int? oldMaxEventRows}) {
-    int getPage(String resource) => widget.pageValue.visibleRange.resources.indexOf(resource);
+    int getPage(String resource) =>
+        widget.pageValue.visibleRange.resources.indexOf(resource);
 
     // Remove events outside the current viewport (with some buffer).
     _yPositions.removeWhere((event, yPosition) {
@@ -139,7 +136,8 @@ class _MultiResourceEventHeaderEventsState<E extends Event> extends State<_Multi
           getPage(event.resource!) + 1 <= widget.pageValue.firstVisiblePage;
     });
     _maxEventPositions.removeWhere((date, _) {
-      return date < widget.pageValue.firstVisiblePage || date > widget.pageValue.lastVisiblePage;
+      return date < widget.pageValue.firstVisiblePage ||
+          date > widget.pageValue.lastVisiblePage;
     });
 
     // Remove old events.
@@ -156,9 +154,11 @@ class _MultiResourceEventHeaderEventsState<E extends Event> extends State<_Multi
 
     // Insert new events and, in case [maxEventRows] increased, display
     // previously overflowed events.
-    final sortedEvents = widget.events.where((it) => _yPositions[it] == null).sortedByResource();
+    final sortedEvents =
+        widget.events.where((it) => _yPositions[it] == null).sortedByResource();
 
-    Iterable<E> eventsWithPosition(int y) => _yPositions.entries.where((it) => it.value == y).map((it) => it.key);
+    Iterable<E> eventsWithPosition(int y) =>
+        _yPositions.entries.where((it) => it.value == y).map((it) => it.key);
 
     outer:
     for (final event in sortedEvents) {
@@ -180,14 +180,16 @@ class _MultiResourceEventHeaderEventsState<E extends Event> extends State<_Multi
           .where((it) => it.key.resource == resource)
           .map((it) => it.value ?? widget.maxEventRows)
           .maxOrNull;
-      _maxEventPositions[getPage(resource)] = maxEventPosition != null ? maxEventPosition + 1 : 0;
+      _maxEventPositions[getPage(resource)] =
+          maxEventPosition != null ? maxEventPosition + 1 : 0;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final allDayBuilder = DefaultEventBuilder.allDayOf<E>(context)!;
-    final allDayOverflowBuilder = DefaultEventBuilder.allDayOverflowOf<E>(context)!;
+    final allDayOverflowBuilder =
+        DefaultEventBuilder.allDayOverflowOf<E>(context)!;
     return _EventsWidget(
       pageValue: widget.pageValue,
       eventHeight: widget.eventHeight,
@@ -202,18 +204,23 @@ class _MultiResourceEventHeaderEventsState<E extends Event> extends State<_Multi
               child: _buildEvent(allDayBuilder, event),
             ),
         ...widget.pageValue.visibleResourcesIterable.mapNotNull((resource) {
-          final maxPosition = _maxEventPositions[widget.pageValue.visibleRange.resources.indexOf(resource)]!;
+          final maxPosition = _maxEventPositions[
+              widget.pageValue.visibleRange.resources.indexOf(resource)]!;
           if (maxPosition <= widget.maxEventRows) return null;
 
           final overflowedEvents = widget.events.where((it) {
-            return widget.pageValue.visibleResources.contains(it.resource) && _yPositions[it] == null;
+            return widget.pageValue.visibleResources.contains(it.resource) &&
+                _yPositions[it] == null;
           }).toList();
 
           return _EventParentDataWidget(
             key: ValueKey(resource),
             resource: resource,
             yPosition: widget.maxEventRows,
-            child: allDayOverflowBuilder(context, DefaultDateController.of(context)!.date.value, overflowedEvents),
+            child: allDayOverflowBuilder(
+                context,
+                DefaultDateController.of(context)!.date.value,
+                overflowedEvents),
           );
         }),
       ],
@@ -225,19 +232,22 @@ class _MultiResourceEventHeaderEventsState<E extends Event> extends State<_Multi
       context,
       event,
       AllDayEventLayoutInfo(
-        hiddenStartDays:
-            (widget.pageValue.page - widget.pageValue.visibleRange.resources.indexOf(event.resource!)).coerceAtLeast(0),
-        hiddenEndDays: (widget.pageValue.visibleRange.resources.indexOf(event.resource!) -
-                widget.pageValue.page -
-                widget.pageValue.visibleResourceCount)
+        hiddenStartDays: (widget.pageValue.page -
+                widget.pageValue.visibleRange.resources
+                    .indexOf(event.resource!))
             .coerceAtLeast(0),
+        hiddenEndDays:
+            (widget.pageValue.visibleRange.resources.indexOf(event.resource!) -
+                    widget.pageValue.page -
+                    widget.pageValue.visibleResourceCount)
+                .coerceAtLeast(0),
       ),
     );
   }
 }
 
 class _EventParentDataWidget extends ParentDataWidget<_EventParentData> {
-  _EventParentDataWidget({
+  const _EventParentDataWidget({
     super.key,
     required this.resource,
     required this.yPosition,
@@ -267,7 +277,7 @@ class _EventParentDataWidget extends ParentDataWidget<_EventParentData> {
 }
 
 class _EventsWidget extends MultiChildRenderObjectWidget {
-  _EventsWidget({
+  const _EventsWidget({
     required this.pageValue,
     required this.eventHeight,
     required this.maxEventRows,
@@ -376,10 +386,12 @@ class _EventsLayout extends RenderBox
   }
 
   @override
-  double computeMinIntrinsicHeight(double width) => _parallelEventCount() * eventHeight;
+  double computeMinIntrinsicHeight(double width) =>
+      _parallelEventCount() * eventHeight;
 
   @override
-  double computeMaxIntrinsicHeight(double width) => _parallelEventCount() * eventHeight;
+  double computeMaxIntrinsicHeight(double width) =>
+      _parallelEventCount() * eventHeight;
 
   @override
   void performLayout() {
@@ -395,14 +407,15 @@ class _EventsLayout extends RenderBox
   }
 
   void _positionEvents() {
-    //todo:show events for all resources over full width
     final dateWidth = size.width / pageValue.visibleResourceCount;
     for (final child in children) {
       final data = child.data;
-      final startPage = pageValue.visibleRange.resources.indexOf(data.resource!);
+      final startPage =
+          pageValue.visibleRange.resources.indexOf(data.resource!);
       final left = ((startPage - pageValue.page) * dateWidth).coerceAtLeast(0);
       final endPage = startPage + 1;
-      final right = ((endPage - pageValue.page) * dateWidth).coerceAtMost(size.width);
+      final right =
+          ((endPage - pageValue.page) * dateWidth).coerceAtMost(size.width);
 
       child.layout(
         BoxConstraints(
@@ -413,14 +426,19 @@ class _EventsLayout extends RenderBox
         ),
         parentUsesSize: true,
       );
-      final actualLeft = startPage >= pageValue.page ? left : left.coerceAtMost(right - child.size.width);
+      final actualLeft = startPage >= pageValue.page
+          ? left
+          : left.coerceAtMost(right - child.size.width);
       data.offset = Offset(actualLeft, data.yPosition! * eventHeight);
     }
   }
 
   double _parallelEventCount() {
     int parallelEventsFrom(int page) {
-      return page.rangeTo(page + pageValue.visibleResourceCount - 1).map((it) => _maxEventPositions[it]!).max;
+      return page
+          .rangeTo(page + pageValue.visibleResourceCount - 1)
+          .map((it) => _maxEventPositions[it]!)
+          .max;
     }
 
     final oldParallelEvents = parallelEventsFrom(pageValue.page.floor());
@@ -434,7 +452,8 @@ class _EventsLayout extends RenderBox
       defaultHitTestChildren(result, position: position);
 
   @override
-  void paint(PaintingContext context, Offset offset) => defaultPaint(context, offset);
+  void paint(PaintingContext context, Offset offset) =>
+      defaultPaint(context, offset);
 }
 
 extension _ParentData on RenderBox {

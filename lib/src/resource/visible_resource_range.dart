@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/physics.dart';
 
-import '../layouts/recurring_multi_date.dart';
 import '../utils.dart';
 
 /// Defines how many resources are visible at once

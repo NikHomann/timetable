@@ -1,27 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:timetable/src/layouts/multi_date.dart';
-import 'package:timetable/src/resource/resource_page_view.dart';
 
 import '../../timetable.dart';
-import '../components/date_header.dart';
-import '../components/multi_date_content.dart';
-import '../components/multi_date_event_header.dart';
-import '../components/multi_resource_content.dart';
-import '../components/resource_header.dart';
-import '../components/time_indicators.dart';
-import '../components/week_indicator.dart';
-import '../config.dart';
-import '../date/controller.dart';
-import '../date/date_page_view.dart';
-import '../event/builder.dart';
-import '../event/event.dart';
-import '../event/provider.dart';
-import '../theme.dart';
-import '../time/controller.dart';
-import '../time/zoom.dart';
 import '../utils.dart';
 import '../utils/constraints_passing_column.dart';
-import 'recurring_multi_date.dart';
 
 typedef MultiResourceTimetableHeaderBuilder = Widget Function(
   BuildContext context,
