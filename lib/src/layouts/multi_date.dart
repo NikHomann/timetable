@@ -167,7 +167,9 @@ class MultiDateTimetableHeader<E extends Event> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(children: [
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
       leading,
       Expanded(
         child: ConstraintsPassingColumn(children: [

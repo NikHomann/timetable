@@ -70,9 +70,7 @@ class HourDividersStyle {
   int get hashCode => Object.hash(color, width);
   @override
   bool operator ==(Object other) {
-    return other is HourDividersStyle &&
-        color == other.color &&
-        width == other.width;
+    return other is HourDividersStyle && color == other.color && width == other.width;
   }
 }
 
@@ -88,14 +86,19 @@ class _HourDividersPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final heightPerHour = size.height / Duration.hoursPerDay;
-    for (final h in InternalDateTimeTimetable.innerDateHours) {
-      final y = h * heightPerHour;
-      canvas.drawLine(Offset(-8, y), Offset(size.width, y), _paint);
+    final heightPer15Minutes = size.height / (Duration.hoursPerDay * 4); // 4x15 Minuten in jeder Stunde
+    final numberOfIntervals = Duration.hoursPerDay * 4; // 24 Stunden * 4 Intervalle pro Stunde = 96 Intervalle
+
+    for (int i = 0; i < numberOfIntervals; i++) {
+      final y = i * heightPer15Minutes;
+      final minutes = (i * 15) % 60;
+      final hour = (i * 15) ~/ 60;
+
+      // Zeichne die Linie
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), _paint);
     }
   }
 
   @override
-  bool shouldRepaint(_HourDividersPainter oldDelegate) =>
-      style != oldDelegate.style;
+  bool shouldRepaint(_HourDividersPainter oldDelegate) => style != oldDelegate.style;
 }
