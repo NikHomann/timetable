@@ -101,9 +101,14 @@ class _DatePageViewState extends State<DatePageView> {
   }
 
   Widget _buildScrollingChild() {
+    final visibleDayCount = _controller!.value.visibleDayCount;
+    final physics = (visibleDayCount == 7 && kIsWeb)
+        ? const NeverScrollableScrollPhysics()
+        : DateScrollPhysics(_controller!.map((it) => it.visibleRange));
+    
     return Scrollable(
       axisDirection: AxisDirection.right,
-      physics: DateScrollPhysics(_controller!.map((it) => it.visibleRange)),
+      physics: physics,
       controller: _scrollController!,
       viewportBuilder: (context, position) => Viewport(
         axisDirection: AxisDirection.right,
