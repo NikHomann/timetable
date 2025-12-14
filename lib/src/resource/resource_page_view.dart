@@ -90,13 +90,17 @@ class _ResourcePageViewState extends State<ResourcePageView> {
         slivers: [
           ValueListenableBuilder(
             valueListenable: _controller!.map((it) => it.visibleResourceCount),
-            builder: (context, visibleResourceCount, _) => SliverFillViewport(
-              padEnds: false,
-              viewportFraction: 1 / visibleResourceCount,
-              delegate: SliverChildBuilderDelegate(
-                _buildPage,
-              ),
-            ),
+            builder: (context, visibleResourceCount, _) {
+              final resources = _controller!.visibleRange.resources;
+              return SliverFillViewport(
+                padEnds: false,
+                viewportFraction: 1 / visibleResourceCount,
+                delegate: SliverChildBuilderDelegate(
+                  _buildPage,
+                  childCount: resources.length,
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -128,19 +132,20 @@ class _ResourcePageViewState extends State<ResourcePageView> {
 
   Widget _buildPage(BuildContext context, int page) {
     final resources = _controller!.visibleRange.resources;
+    final safePage = page.clamp(0, resources.length - 1);
     Widget child = ValueListenableBuilder(
       valueListenable: DefaultDateController.of(context)!.date,
       builder: (context, date, _) => widget.builder(
         context,
         date,
-        resources.length > page ? resources[page] : '',
+        resources.isEmpty ? '' : resources[safePage],
       ),
     );
     if (widget.shrinkWrapInCrossAxis) {
       child = ImmediateSizeReportingOverflowPage(
         onSizeChanged: (size) {
-          if (_heights[page] == size.height) return;
-          _heights[page] = size.height;
+          if (_heights[safePage] == size.height) return;
+          _heights[safePage] = size.height;
           WidgetsBinding.instance.addPostFrameCallback((_) => setState(() {}));
         },
         child: child,
@@ -153,21 +158,46 @@ class _ResourcePageViewState extends State<ResourcePageView> {
 class MultiResourceScrollController extends ScrollController {
   MultiResourceScrollController(this.controller) : super(initialScrollOffset: controller.value.page) {
     controller.addListener(_listenToController);
+    addListener(_onScrollUpdate);
   }
 
   final ResourceController controller;
+  bool _isUpdatingFromController = false;
 
   int get visibleResourceCount => controller.value.visibleResourceCount;
 
   double get page => position.page;
 
   void _listenToController() {
-    if (hasClients) position.forcePage(controller.value.page);
+    if (hasClients && !_isUpdatingFromController) {
+      final targetPage = controller.value.page;
+      final currentPage = position.page;
+      if ((currentPage - targetPage).abs() > 0.001) {
+        _isUpdatingFromController = true;
+        position.forcePage(targetPage);
+        _isUpdatingFromController = false;
+      }
+    }
+  }
+
+  void _onScrollUpdate() {
+    if (!_isUpdatingFromController && hasClients) {
+      final newPage = position.page;
+      if ((controller.value.page - newPage).abs() > 0.001) {
+        _isUpdatingFromController = true;
+        controller.value = controller.value.copyWithActivity(
+          page: newPage,
+          activity: const DragResourceScrollActivity(),
+        );
+        _isUpdatingFromController = false;
+      }
+    }
   }
 
   @override
   void dispose() {
     controller.removeListener(_listenToController);
+    removeListener(_onScrollUpdate);
     super.dispose();
   }
 
@@ -263,14 +293,22 @@ class MultiResourceScrollPosition extends ScrollPositionWithSingleContext {
     final overscroll = super.setPixels(newPixels);
 
     final activity = this.activity;
-    final dateScrollActivity = activity is DragScrollActivity ||
-            (activity is BallisticScrollActivity && activity.velocity.abs() > precisionErrorTolerance)
-        ? const DragResourceScrollActivity()
-        : const IdleResourceScrollActivity();
-    controller.value = controller.value.copyWithActivity(
-      page: pixelsToPage(pixels),
-      activity: dateScrollActivity,
-    );
+    if (activity is! DragScrollActivity && activity is! BallisticScrollActivity) {
+      return overscroll;
+    }
+    
+    final newPage = pixelsToPage(pixels);
+    if ((controller.value.page - newPage).abs() > 0.01) {
+      final dateScrollActivity = activity is DragScrollActivity ||
+              (activity is BallisticScrollActivity && activity.velocity.abs() > precisionErrorTolerance)
+          ? const DragResourceScrollActivity()
+          : const IdleResourceScrollActivity();
+      
+      controller.value = controller.value.copyWithActivity(
+        page: newPage,
+        activity: dateScrollActivity,
+      );
+    }
     return overscroll;
   }
 

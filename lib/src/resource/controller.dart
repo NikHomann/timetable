@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart' hide Interval;
 
 import '../config.dart';
+import '../utils.dart';
 import 'visible_resource_range.dart';
 
 /// Controls the visible resources in Timetable widgets.
@@ -19,8 +20,7 @@ import 'visible_resource_range.dart';
 /// * [jumpToToday], [jumpTo], or [jumpToPage] if you don't want an animation
 ///
 /// You can also get and update the [VisibleResourceRange] via [visibleRange].
-class ResourceController
-    extends ValueNotifier<ResourcePageValueWithScrollActivity> {
+class ResourceController extends ValueNotifier<ResourcePageValueWithScrollActivity> {
   ResourceController({
     int? initialIndex,
     required VisibleResourceRange visibleRange,
@@ -54,9 +54,22 @@ class ResourceController
 
   set visibleRange(VisibleResourceRange visibleRange) {
     cancelAnimation();
+    final currentPage = value.page;
+    final oldResources = value.visibleRange.resources;
+    final newResources = visibleRange.resources;
+    final resourcesChanged = oldResources.length != newResources.length ||
+        !oldResources.every((r) => newResources.contains(r)) ||
+        !newResources.every((r) => oldResources.contains(r));
+    final visibleResourceCountChanged = value.visibleRange.visibleResourceCount != visibleRange.visibleResourceCount;
+
+    double targetPage = 0;
+    if (!resourcesChanged && !visibleResourceCountChanged) {
+      final maxPage = ((visibleRange.resources.length - visibleRange.visibleResourceCount).toDouble()).coerceAtLeast(0);
+      targetPage = currentPage.coerceIn(0, maxPage);
+    }
+
     value = value.copyWithActivity(
-      page:
-          0, //always reset back to page 0 as otherwise we could get problems with resources out of range if visibleResourceCount or the resources change
+      page: targetPage,
       visibleRange: visibleRange,
       activity: const IdleResourceScrollActivity(),
     );
@@ -90,8 +103,7 @@ class ResourceController
     required TickerProvider vsync,
   }) async {
     cancelAnimation();
-    final controller =
-        AnimationController(debugLabel: 'DateController', vsync: vsync);
+    final controller = AnimationController(debugLabel: 'DateController', vsync: vsync);
     _animationController = controller;
 
     final previousPage = value.page;
@@ -130,8 +142,7 @@ class ResourceController
   void cancelAnimation() {
     if (_animationController == null) return;
 
-    value =
-        value.copyWithActivity(activity: const IdleResourceScrollActivity());
+    value = value.copyWithActivity(activity: const IdleResourceScrollActivity());
     _animationController!.dispose();
     _animationController = null;
   }
@@ -159,37 +170,54 @@ class ResourcePageValue with Diagnosticable {
 
   final double page;
 
-  String get resource => visibleRange.resources[page.round()];
+  String get resource {
+    final resources = visibleRange.resources;
+    final index = page.round().clamp(0, resources.length - 1);
+    return resources[index];
+  }
 
   int get firstVisiblePage => page.floor();
 
   /// The first resource that is at least partially visible.
   String get firstVisibleResource {
-    return visibleRange.resources[firstVisiblePage];
+    final resources = visibleRange.resources;
+    final index = firstVisiblePage.clamp(0, resources.length - 1);
+    return resources[index];
   }
 
   int get lastVisiblePage => page.ceil() + visibleResourceCount - 1;
 
   /// The last resource that is at least partially visible.
   String get lastVisibleResource {
-    return visibleRange.resources[lastVisiblePage];
+    final resources = visibleRange.resources;
+    final index = lastVisiblePage.clamp(0, resources.length - 1);
+    return resources[index];
   }
 
   /// The interval of resources that are at least partially visible.
   List<String> get visibleResources {
-    return visibleRange.resources.sublist(firstVisiblePage, lastVisiblePage);
+    final resources = visibleRange.resources;
+    final start = firstVisiblePage.clamp(0, resources.length - 1);
+    final end = (lastVisiblePage + 1).clamp(0, resources.length);
+    if (start >= end) {
+      return resources.isEmpty ? [] : [resources[start]];
+    }
+    return resources.sublist(start, end);
   }
 
   Iterable<String> get visibleResourcesIterable sync* {
-    var currentIndex = firstVisiblePage;
-    while (currentIndex <= lastVisiblePage) {
-      yield visibleRange.resources[currentIndex];
+    final resources = visibleRange.resources;
+    if (resources.isEmpty) return;
+    final start = firstVisiblePage.clamp(0, resources.length - 1);
+    final end = lastVisiblePage.clamp(0, resources.length - 1);
+    var currentIndex = start;
+    while (currentIndex <= end) {
+      yield resources[currentIndex];
       currentIndex += 1;
     }
   }
 
-  ResourcePageValue copyWith(
-          {VisibleResourceRange? visibleRange, double? page}) =>
+  ResourcePageValue copyWith({VisibleResourceRange? visibleRange, double? page}) =>
       ResourcePageValue(visibleRange ?? this.visibleRange, page ?? this.page);
 
   @override
@@ -197,9 +225,7 @@ class ResourcePageValue with Diagnosticable {
 
   @override
   bool operator ==(Object other) {
-    return other is ResourcePageValue &&
-        visibleRange == other.visibleRange &&
-        page == other.page;
+    return other is ResourcePageValue && visibleRange == other.visibleRange && page == other.page;
   }
 
   @override
@@ -276,18 +302,14 @@ class DrivenResourceScrollActivity extends ResourceScrollActivity {
 /// * [TimetableConfig], which bundles multiple configuration widgets for
 ///   Timetable.
 class DefaultResourceController extends InheritedWidget {
-  const DefaultResourceController(
-      {required this.controller, required super.child});
+  const DefaultResourceController({required this.controller, required super.child});
 
   final ResourceController controller;
 
   @override
-  bool updateShouldNotify(DefaultResourceController oldWidget) =>
-      controller != oldWidget.controller;
+  bool updateShouldNotify(DefaultResourceController oldWidget) => controller != oldWidget.controller;
 
   static ResourceController? of(BuildContext context) {
-    return context
-        .dependOnInheritedWidgetOfExactType<DefaultResourceController>()
-        ?.controller;
+    return context.dependOnInheritedWidgetOfExactType<DefaultResourceController>()?.controller;
   }
 }

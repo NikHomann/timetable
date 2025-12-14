@@ -50,34 +50,12 @@ class ResourceScrollPhysics extends ScrollPhysics {
       );
     }
 
-    // If we're out of range and not headed back in range, defer to the parent
-    // ballistics, which should put us back in range at a page boundary.
     if ((velocity <= 0.0 && position.pixels <= position.minScrollExtent) ||
         (velocity >= 0.0 && position.pixels >= position.maxScrollExtent)) {
       return super.createBallisticSimulation(position, velocity);
     }
 
-    final targetPage = visibleRange.getTargetPageForCurrent(
-      position.page,
-      velocity: position.pixelDeltaToPageDelta(velocity),
-      tolerance: Tolerance(
-        distance: position.pixelDeltaToPageDelta(tolerance.distance),
-        time: tolerance.time,
-        velocity: position.pixelDeltaToPageDelta(tolerance.velocity),
-      ),
-    );
-    final target = position.pageToPixels(targetPage);
-
-    if (target != position.pixels) {
-      return ScrollSpringSimulation(
-        spring,
-        position.pixels,
-        target,
-        velocity,
-        tolerance: tolerance,
-      );
-    }
-    return null;
+    return super.createBallisticSimulation(position, velocity);
   }
 
   @override
