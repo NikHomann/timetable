@@ -88,8 +88,17 @@ extension DateTimeTimetable on DateTime {
       copyWith(hour: 23, minute: 59, second: 59, millisecond: 999);
   bool get isAtEndOfDay => this == atEndOfDay;
 
+  /// Source of the current time as a local date and time in UTC, the format
+  /// used throughout timetable.
+  ///
+  /// Defaults to the device's local time. Apps that show a calendar in a fixed
+  /// time zone can replace it, so that the now indicator and "today" follow
+  /// that zone instead of the device's.
+  static DateTime Function() nowProvider =
+      () => DateTime.now().copyWith(isUtc: true);
+
   static DateTime now() {
-    final date = DateTime.now().copyWith(isUtc: true);
+    final date = nowProvider();
     assert(date.debugCheckIsValidTimetableDateTime());
     return date;
   }
